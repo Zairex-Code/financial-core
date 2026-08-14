@@ -4,6 +4,7 @@ config-server/
 credit-service/
 customer-service/
 eureka-server/
+gateway-service/
 transaction-service/
 
 # IDE
