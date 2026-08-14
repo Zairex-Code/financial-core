@@ -128,7 +128,7 @@ services:
     container_name: kafka-ui
     restart: always
     ports:
-      - "8080:8080"
+      - "8089:8080"
     depends_on:
       kafka:
         condition: service_healthy

@@ -1,0 +1,113 @@
+# ===================================================================
+# Microservices Orchestration - Financial Core
+# Servicios: eureka, config, customer, account, credit, transaction, yanki, gateway
+# Infraestructura (Mongo/Redis/Kafka/Sonar) se levanta con bank-infrastructure/docker-compose.yaml
+# ===================================================================
+
+networks:
+  financial-network:
+    external: true
+    name: financial-network
+
+services:
+  eureka-server:
+    build: ../eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - financial-network
+
+  config-server:
+    build: ../config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - financial-network
+
+  customer-service:
+    build: ../customer-service
+    container_name: customer-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://customer-db:27017/customer_db
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      REDIS_HOST: redis-cache
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
+
+  account-service:
+    build: ../account-service
+    container_name: account-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://customer-db:27017/account_db
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
+
+  credit-service:
+    build: ../credit-service
+    container_name: credit-service
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://customer-db:27017/credit_db
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
+
+  transaction-service:
+    build: ../transaction-service
+    container_name: transaction-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://customer-db:27017/transaction_db
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
+
+  yanki-service:
+    build: ../yanki-service
+    container_name: yanki-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://customer-db:27017/yanki_db
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
+
+  gateway-service:
+    build: ../gateway-service
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka
+      CONFIG_SERVER_URL: http://config-server:8888
+    depends_on:
+      - eureka-server
+    networks:
+      - financial-network
