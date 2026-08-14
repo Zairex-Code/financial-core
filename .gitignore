@@ -1,0 +1,11 @@
+# Microservicios (repositorios propios)
+account-service/
+config-server/
+credit-service/
+customer-service/
+eureka-server/
+transaction-service/
+
+# IDE
+.idea/
+*.iml

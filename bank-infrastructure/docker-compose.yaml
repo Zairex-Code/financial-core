@@ -1,0 +1,183 @@
+version: '3.8'
+
+# ===================================================================
+# Complete Enterprise Infrastructure Setup for NTT DATA Core
+# Services: MongoDB, Redis, Kafka, Zookeeper, Kafka-UI, Postgres & SonarQube
+# Network: Isolated financial-network
+# ===================================================================
+
+networks:
+  financial-network:
+    driver: bridge
+    name: financial-network
+
+volumes:
+  mongo_data:
+    driver: local
+  redis_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
+  postgres_data:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+
+services:
+  # -----------------------------------------------------------------
+  # 1. MongoDB Document Store (Database per Service)
+  # -----------------------------------------------------------------
+  customer-db:
+    image: mongo:7.0
+    container_name: customer-db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: customer_db
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # -----------------------------------------------------------------
+  # 2. Redis In-Memory Caching (Master Data Acceleration - Phase III)
+  # -----------------------------------------------------------------
+  redis-cache:
+    image: redis:7.2-alpine
+    container_name: redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------------------------
+  # 3. Apache Zookeeper (Kafka Distributed Coordinator)
+  # -----------------------------------------------------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------------------------
+  # 4. Apache Kafka Broker (Event-Driven Reactive Messaging)
+  # -----------------------------------------------------------------
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # -----------------------------------------------------------------
+  # 5. Kafka UI (Visual Event Monitoring for Developers)
+  # -----------------------------------------------------------------
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: Kafka-Cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - financial-network
+
+  # -----------------------------------------------------------------
+  # 6. PostgreSQL (SonarQube Storage Backend)
+  # -----------------------------------------------------------------
+  sonarqube-db:
+    image: postgres:15-alpine
+    container_name: sonarqube-db
+    restart: always
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar_password
+      POSTGRES_DB: sonar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - financial-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -----------------------------------------------------------------
+  # 7. SonarQube Community Edition (Code Quality & Security Gates)
+  # -----------------------------------------------------------------
+  sonarqube:
+    image: sonarqube:10.3-community
+    container_name: sonarqube
+    restart: always
+    ports:
+      - "9000:9000"
+    depends_on:
+      sonarqube-db:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar_password
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - financial-network
