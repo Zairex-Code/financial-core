@@ -6,6 +6,7 @@ customer-service/
 eureka-server/
 gateway-service/
 transaction-service/
+yanki-service/
 
 # IDE
 .idea/
