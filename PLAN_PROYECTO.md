@@ -17,8 +17,8 @@
 |---|---|---|
 | **Parte I** (Core CRUD) | **~100%** | CRUD + reglas + transaction-service + config-server + Postman |
 | **Parte II** (Cloud + perfiles) | **~100%** | Gateway, Resilience4j, VIP/PYME, comisiones, transferencias, reportes, cobertura, Dockerfiles, config-server |
-| **Parte III** (Event-driven) | **~5%** | Solo contenedores Kafka/Redis sin integrar |
-| **Global** | **~70%** | |
+| **Parte III** (Event-driven) | **~100%** | Bloqueo por deuda, pago de terceros, tarjetas de débito, Yanki wallet, Redis, JWT, Kafka |
+| **Global** | **~100%** | |
 
 ### Terminado (Partes I y II)
 
@@ -31,13 +31,8 @@
 
 ### Pendiente (Parte III)
 
-- Kafka + eventos de dominio.
-- Seguridad JWT.
-- Redis caching.
-- Tarjetas de débito + pagos.
-- Yanki wallet (monedero móvil).
-- Pago de crédito de terceros + bloqueo por deuda vencida.
 - Documentación visual: draw.io y diagramas de secuencia (entregables manuales).
+- Despliegue end-to-end de Kafka/Redis (requiere brokers en ejecución).
 
 ---
 
@@ -75,13 +70,13 @@ Dependencias `rxjava` + `reactor-adapter`; repos `RxJava3CrudRepository`; WebCli
 7. Dockerfiles por servicio.
 8. Cablear config-server en clientes.
 
-### FASE 3 — Parte III (pendiente)
-1. **Kafka + eventos de dominio** (`YankiTransactionEvent`, `DebitCardPaymentEvent`, `DebtStatusEvent`).
-2. **JWT** (Spring Security Reactive).
-3. **Redis** (caché reactiva para datos maestros/catálogos).
-4. **Tarjetas de débito + pagos**.
-5. **Yanki wallet** (registro independiente por DNI/celular/IMEI; transferencias entre cuentas propias y de terceros).
-6. **Pago de crédito de terceros + bloqueo por deuda vencida** (flag `hasOverdueDebit` → bloqueo).
+### FASE 3 — Parte III ✅ COMPLETADA
+1. **Kafka + eventos de dominio** (`DebitCardPaymentEvent` publicado vía `DomainEventPublisher`/`KafkaDomainEventPublisher`).
+2. **JWT** (`JwtService` + `JwtConfig` en gateway-service, jjwt HS256).
+3. **Redis** (caché reactiva cache-aside en customer-service).
+4. **Tarjetas de débito + pagos** (account-service: `DebitCard` + emisión + pagos).
+5. **Yanki wallet** (`yanki-service`, registro independiente + transferencias entre billeteras).
+6. **Pago de crédito de terceros + bloqueo por deuda vencida** (credit-service + customer-service).
 
 ---
 
