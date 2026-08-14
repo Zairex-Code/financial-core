@@ -459,6 +459,7 @@ spring:
 |---|---|
 | `/api/v1/customers/**` | customer-service |
 | `/api/v1/accounts/**` | account-service |
+| `/api/v1/debit-cards/**` | account-service |
 | `/api/v1/credits/**` | credit-service |
 | `/api/v1/movements/**` | transaction-service |
 | `/api/v1/wallets/**` | yanki-service |
@@ -515,7 +516,8 @@ export SONAR_TOKEN=<token>
 - **Swagger UI** por servicio: `http://localhost:<puerto>/webjars/swagger-ui/index.html`.
 - **OpenAPI crudo:** `http://localhost:<puerto>/v3/api-docs`.
 - **Exportar specs:** `./scripts/export-openapi.sh` (genera `docs/openapi/*.yaml`).
-- **Postman:** colección en `postman/Financial_Core.postman_collection.json`.
+- **Postman:** colección completa en `postman/Financial_Core.postman_collection.json`. Usa el Gateway como única URL base (`{{baseUrl}} = http://localhost:8080`) e incluye todos los endpoints (clientes, cuentas, débito, créditos, movimientos y Yanki). Importa la colección, llena las variables (`customerId`, `accountId`, `creditId`, `creditNumber`, `debitCardId`, `walletPhone`) y ejecuta los flujos.
+- **Datos de demostración:** `./scripts/seed.sh` crea clientes, cuentas, créditos, movimientos, tarjeta de débito y billeteras de ejemplo.
 
 ---
 
@@ -573,7 +575,12 @@ for p in 8080 8081 8082 8083 8084 8085; do
 done
 ```
 
-### 23.6 Alternativa contenerizada
+### 23.6 Datos de demostración (seed)
+```bash
+./scripts/seed.sh          # crea clientes, cuentas, créditos, movimientos, débito y billeteras
+```
+
+### 23.7 Alternativa contenerizada
 ```bash
 cd bank-infrastructure
 docker compose -f docker-compose.services.yaml up --build
@@ -623,7 +630,7 @@ Final_Project_NTT_DATA_Bank/
 ├── PLAN_PROYECTO.md           ← hoja de ruta y convenciones
 ├── bank-infrastructure/       ← docker-compose (infra + servicios)
 ├── postman/                   ← colección Postman
-├── scripts/                   ← export-openapi.sh, sonar.sh
+├── scripts/                   ← export-openapi.sh, sonar.sh, seed.sh
 ├── customer-service/          ← repo git propio
 ├── account-service/           ← repo git propio
 ├── credit-service/            ← repo git propio
