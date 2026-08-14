@@ -222,12 +222,33 @@ Configurada en `account-service` y `credit-service` para las llamadas salientes:
 
 ---
 
-## 12. Calidad de código
+## 12. Calidad de código (JaCoCo + SonarQube)
 
-- **JaCoCo:** cobertura de líneas ≥ 80% (gate en `mvn verify`).
-  - account: 87.3% · credit: 87.0% · customer: 85.6% · transaction: 93.9%.
-- **Checkstyle:** google_checks.xml.
-- **SonarQube:** disponible en `:9000` (login `admin`/`admin`).
+### JaCoCo (cobertura)
+- Todos los servicios generan el **reporte HTML** en `target/site/jacoco/index.html` al ejecutar `mvn test` (o `mvn verify`).
+- **Gate de cobertura ≥ 80%** en los 6 servicios de negocio (verificado en `mvn verify`):
+  - account: 87.3% · credit: 87.0% · customer: 85.6% · transaction: 93.9% · yanki: 91.1% · gateway: 100%.
+- `eureka-server` y `config-server` generan reporte (servicios de infraestructura, sin gate).
+
+Para ver el reporte en el navegador:
+```bash
+cd account-service/target/site/jacoco
+python3 -m http.server 8080     # luego abre http://localhost:8080
+```
+
+### SonarQube
+- Configurado en los **8 poms** (`sonar-maven-plugin` + `sonar.host.url`, `sonar.projectKey`, `sonar.coverage.jacoco.xmlReportPaths`).
+- El token se pasa por **variable de entorno** `SONAR_TOKEN` (no se commitea).
+1. Genera el token: http://localhost:9000 → login `admin`/`admin` → Administration → Security → Users → Tokens → Generate.
+2. Exporta el token y ejecuta el análisis de todos los servicios:
+```bash
+export SONAR_TOKEN=<tu-token>
+./scripts/sonar.sh
+```
+O un servicio individual: `./mvnw sonar:sonar` (usa las propiedades del pom + `SONAR_TOKEN`).
+
+### Checkstyle
+- Reglas `google_checks.xml` aplicadas en `validate`.
 
 ---
 
@@ -296,7 +317,7 @@ docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 \
 ./mvnw verify    # tests + gate de cobertura JaCoCo (≥80%)
 ```
 
-Totales actuales: **237 tests** (customer 46, account 87, credit 68, transaction 18, yanki 13, gateway 3, eureka 1, config 1).
+Totales actuales: **249 tests** (customer 46, account 87, credit 68, transaction 18, yanki 24, gateway 4, eureka 1, config 1).
 
 ---
 
