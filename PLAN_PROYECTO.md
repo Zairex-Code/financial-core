@@ -69,7 +69,7 @@
 5. `config-server` (puerto 8888): propiedades centralizadas.
 6. Documentación: Postman ✅ (draw.io y secuencia pendientes).
 
-### FASE 2 — Parte II (pendiente)
+### FASE 2 — Parte II ✅ COMPLETADA
 1. Spring Cloud Gateway (routing central a los microservicios).
 2. Resilience4j (circuit breaker + timeout 2s).
 3. Perfiles VIP/PYME.
