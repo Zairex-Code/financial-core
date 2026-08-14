@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ===================================================================
 # Complete Enterprise Infrastructure Setup for NTT DATA Core
 # Services: MongoDB, Redis, Kafka, Zookeeper, Kafka-UI, Postgres & SonarQube
