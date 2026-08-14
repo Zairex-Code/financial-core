@@ -1,17 +1,18 @@
 {
   "info": {
     "name": "Financial Core - Bank Core",
-    "description": "Coleccion Postman para el Ecosistema Bancario Reactivo (customer, account, credit, transaction).",
+    "description": "Coleccion Postman para el Ecosistema Bancario Reactivo. Todos los endpoints van por el API Gateway (http://localhost:8080).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseCustomer", "value": "http://localhost:8081" },
-    { "key": "baseAccount", "value": "http://localhost:8082" },
-    { "key": "baseCredit", "value": "http://localhost:8083" },
-    { "key": "baseTransaction", "value": "http://localhost:8084" },
+    { "key": "baseUrl", "value": "http://localhost:8080" },
     { "key": "customerId", "value": "" },
     { "key": "accountId", "value": "" },
-    { "key": "creditId", "value": "" }
+    { "key": "destinationAccountId", "value": "" },
+    { "key": "creditId", "value": "" },
+    { "key": "creditNumber", "value": "" },
+    { "key": "debitCardId", "value": "" },
+    { "key": "walletPhone", "value": "+51999111222" }
   ],
   "item": [
     {
@@ -22,20 +23,34 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseCustomer}}/api/v1/customers", "host": ["{{baseCustomer}}"], "path": ["api", "v1", "customers"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"documentNumber\": \"12345678\",\n  \"documentType\": \"DNI\",\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan.perez@gmail.com\",\n  \"phoneNumber\": \"+51999888777\",\n  \"type\": \"PERSONAL\",\n  \"profile\": \"STANDARD\"\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/customers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"documentNumber\": \"12345678\",\n  \"documentType\": \"DNI\",\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan.perez@gmail.com\",\n  \"phoneNumber\": \"+51999888777\",\n  \"type\": \"PERSONAL\"\n}" }
           }
         },
         {
           "name": "Get all customers",
-          "request": { "method": "GET", "url": { "raw": "{{baseCustomer}}/api/v1/customers", "host": ["{{baseCustomer}}"], "path": ["api", "v1", "customers"] } }
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/customers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers"] } }
         },
         {
           "name": "Get customer by id",
-          "request": { "method": "GET", "url": { "raw": "{{baseCustomer}}/api/v1/customers/{{customerId}}", "host": ["{{baseCustomer}}"], "path": ["api", "v1", "customers", "{{customerId}}"] } }
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers", "{{customerId}}"] } }
+        },
+        {
+          "name": "Search by document",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/customers/search?type=DNI&number=12345678", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers", "search"], "query": [ { "key": "type", "value": "DNI" }, { "key": "number", "value": "12345678" } ] } }
+        },
+        {
+          "name": "Update profile (VIP/PYME)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers", "{{customerId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"documentNumber\": \"12345678\",\n  \"documentType\": \"DNI\",\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan.perez@gmail.com\",\n  \"phoneNumber\": \"+51999888777\",\n  \"type\": \"PERSONAL\",\n  \"profile\": \"VIP\"\n}" }
+          }
+        },
+        {
+          "name": "Mark overdue (block)",
+          "request": { "method": "POST", "url": { "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}/overdue", "host": ["{{baseUrl}}"], "path": ["api", "v1", "customers", "{{customerId}}", "overdue"] } }
         }
       ]
     },
@@ -47,19 +62,20 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseAccount}}/api/v1/accounts", "host": ["{{baseAccount}}"], "path": ["api", "v1", "accounts"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"type\": \"SAVINGS\",\n  \"balance\": 500.0\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/accounts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts"] },
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"type\": \"SAVINGS\",\n  \"balance\": 500.0\n}" }
           }
+        },
+        {
+          "name": "Get all accounts",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/accounts", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts"] } }
         },
         {
           "name": "Deposit",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseAccount}}/api/v1/accounts/{{accountId}}/deposits", "host": ["{{baseAccount}}"], "path": ["api", "v1", "accounts", "{{accountId}}", "deposits"] },
+            "url": { "raw": "{{baseUrl}}/api/v1/accounts/{{accountId}}/deposits", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{accountId}}", "deposits"] },
             "body": { "mode": "raw", "raw": "{\n  \"amount\": 100.0\n}" }
           }
         },
@@ -68,13 +84,45 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseAccount}}/api/v1/accounts/{{accountId}}/withdrawals", "host": ["{{baseAccount}}"], "path": ["api", "v1", "accounts", "{{accountId}}", "withdrawals"] },
+            "url": { "raw": "{{baseUrl}}/api/v1/accounts/{{accountId}}/withdrawals", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{accountId}}", "withdrawals"] },
             "body": { "mode": "raw", "raw": "{\n  \"amount\": 50.0\n}" }
           }
         },
         {
-          "name": "Get all accounts",
-          "request": { "method": "GET", "url": { "raw": "{{baseAccount}}/api/v1/accounts", "host": ["{{baseAccount}}"], "path": ["api", "v1", "accounts"] } }
+          "name": "Transfer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/accounts/{{accountId}}/transfers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "{{accountId}}", "transfers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"destinationAccountId\": \"{{destinationAccountId}}\",\n  \"amount\": 100.0\n}" }
+          }
+        },
+        {
+          "name": "Report by date range",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/accounts/customer/{{customerId}}/report?startDate=2026-01-01&endDate=2026-12-31", "host": ["{{baseUrl}}"], "path": ["api", "v1", "accounts", "customer", "{{customerId}}", "report"], "query": [ { "key": "startDate", "value": "2026-01-01" }, { "key": "endDate", "value": "2026-12-31" } ] } }
+        }
+      ]
+    },
+    {
+      "name": "debit-cards",
+      "item": [
+        {
+          "name": "Issue debit card",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/debit-cards", "host": ["{{baseUrl}}"], "path": ["api", "v1", "debit-cards"] },
+            "body": { "mode": "raw", "raw": "{\n  \"accountId\": \"{{accountId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Pay with debit card",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/debit-cards/{{debitCardId}}/payments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "debit-cards", "{{debitCardId}}", "payments"] },
+            "body": { "mode": "raw", "raw": "{\n  \"amount\": 200.0\n}" }
+          }
         }
       ]
     },
@@ -86,19 +134,20 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseCredit}}/api/v1/credits", "host": ["{{baseCredit}}"], "path": ["api", "v1", "credits"] },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"type\": \"PERSONAL\",\n  \"amount\": 5000.0,\n  \"interestRate\": 12.5,\n  \"installmentCount\": 12\n}"
-            }
+            "url": { "raw": "{{baseUrl}}/api/v1/credits", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits"] },
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"type\": \"PERSONAL\",\n  \"amount\": 5000.0,\n  \"interestRate\": 12.5,\n  \"installmentCount\": 12\n}" }
           }
+        },
+        {
+          "name": "Get all credits",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/credits", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits"] } }
         },
         {
           "name": "Pay credit",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseCredit}}/api/v1/credits/{{creditId}}/payments", "host": ["{{baseCredit}}"], "path": ["api", "v1", "credits", "{{creditId}}", "payments"] },
+            "url": { "raw": "{{baseUrl}}/api/v1/credits/{{creditId}}/payments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits", "{{creditId}}", "payments"] },
             "body": { "mode": "raw", "raw": "{\n  \"amount\": 500.0\n}" }
           }
         },
@@ -107,13 +156,22 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseCredit}}/api/v1/credits/{{creditId}}/consumptions", "host": ["{{baseCredit}}"], "path": ["api", "v1", "credits", "{{creditId}}", "consumptions"] },
+            "url": { "raw": "{{baseUrl}}/api/v1/credits/{{creditId}}/consumptions", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits", "{{creditId}}", "consumptions"] },
             "body": { "mode": "raw", "raw": "{\n  \"amount\": 300.0\n}" }
           }
         },
         {
-          "name": "Get all credits",
-          "request": { "method": "GET", "url": { "raw": "{{baseCredit}}/api/v1/credits", "host": ["{{baseCredit}}"], "path": ["api", "v1", "credits"] } }
+          "name": "Third-party payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/credits/number/{{creditNumber}}/third-party-payments", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits", "number", "{{creditNumber}}", "third-party-payments"] },
+            "body": { "mode": "raw", "raw": "{\n  \"payerCustomerId\": \"{{customerId}}\",\n  \"amount\": 200.0\n}" }
+          }
+        },
+        {
+          "name": "Report by date range",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/credits/customer/{{customerId}}/report?startDate=2026-01-01&endDate=2026-12-31", "host": ["{{baseUrl}}"], "path": ["api", "v1", "credits", "customer", "{{customerId}}", "report"], "query": [ { "key": "startDate", "value": "2026-01-01" }, { "key": "endDate", "value": "2026-12-31" } ] } }
         }
       ]
     },
@@ -122,11 +180,42 @@
       "item": [
         {
           "name": "Get movements by product",
-          "request": { "method": "GET", "url": { "raw": "{{baseTransaction}}/api/v1/movements/product/{{accountId}}", "host": ["{{baseTransaction}}"], "path": ["api", "v1", "movements", "product", "{{accountId}}"] } }
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/movements/product/{{accountId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "movements", "product", "{{accountId}}"] } }
         },
         {
-          "name": "Get latest 10 movements by product",
-          "request": { "method": "GET", "url": { "raw": "{{baseTransaction}}/api/v1/movements/product/{{accountId}}/latest/10", "host": ["{{baseTransaction}}"], "path": ["api", "v1", "movements", "product", "{{accountId}}", "latest", "10"] } }
+          "name": "Get latest 10 movements",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/movements/product/{{accountId}}/latest/10", "host": ["{{baseUrl}}"], "path": ["api", "v1", "movements", "product", "{{accountId}}", "latest", "10"] } }
+        }
+      ]
+    },
+    {
+      "name": "yanki-service",
+      "item": [
+        {
+          "name": "Create wallet",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallets", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallets"] },
+            "body": { "mode": "raw", "raw": "{\n  \"phoneNumber\": \"+51999111222\",\n  \"documentNumber\": \"12345678\",\n  \"documentType\": \"DNI\",\n  \"name\": \"Juan Perez\",\n  \"email\": \"juan.perez@gmail.com\",\n  \"imei\": \"123456789012345\"\n}" }
+          }
+        },
+        {
+          "name": "Get all wallets",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/wallets", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallets"] } }
+        },
+        {
+          "name": "Get wallet by phone",
+          "request": { "method": "GET", "url": { "raw": "{{baseUrl}}/api/v1/wallets/phone/{{walletPhone}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallets", "phone", "{{walletPhone}}"] } }
+        },
+        {
+          "name": "Transfer between wallets",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wallets/transfers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "wallets", "transfers"] },
+            "body": { "mode": "raw", "raw": "{\n  \"sourcePhoneNumber\": \"+51999111222\",\n  \"destinationPhoneNumber\": \"+51999333444\",\n  \"amount\": 100.0\n}" }
+          }
         }
       ]
     }
