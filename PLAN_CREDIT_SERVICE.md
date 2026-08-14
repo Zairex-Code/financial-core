@@ -2,6 +2,11 @@
 
 > Plan de construcción del microservicio de créditos para el Financial Core (NTT DATA).
 
+## Instrucciones de trabajo (obligatorias)
+
+1. **Commit por cada clase creada**: commit inmediato con mensaje descriptivo (`feature(Clase): creada`) por cada clase, interfaz, DTO, documento o configuración nueva.
+2. **Sin referencias a la entidad bancaria real**: no incluir el acrónimo de la entidad bancaria (3 letras) ni nombres de bancos/marcas reales en ningún artefacto (código, comentarios, configs, Docker, Postman, docs). Usar términos neutros: *Financial Core*, *Banking*, *Core Engine*.
+
 ## 1. Objetivo
 
 Implementar `credit-service` replicando la arquitectura hexagonal (Ports & Adapters) de `account-service`, con los productos **Crédito Personal**, **Crédito Empresarial** y **Tarjeta de Crédito (TC)**.
@@ -15,7 +20,7 @@ Implementar `credit-service` replicando la arquitectura hexagonal (Ports & Adapt
 | Cliente Empresarial | **Múltiples créditos empresariales** + máx. **1 TC**. No créditos personales |
 | Autonomía crediticia | El cliente puede adquirir crédito **sin cuenta bancaria activa** (no depende de account-service) |
 | VIP / PYME | Requieren TC activa (dato consumido por customer-service) |
-| Transaccionalidad | Pagos de crédito (amortización) en esta iteración; consumos TC → transaction-service |
+| Transaccionalidad | Pagos de crédito (amortización) ✅ | consumos TC ✅ → transaction-service |
 
 ## 3. Arquitectura (paquete `com.nttdata.bootcamp.credit_service`)
 
