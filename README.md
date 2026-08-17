@@ -684,6 +684,18 @@ Final_Project_NTT_DATA_Bank/
 
 Cada microservicio tiene su propio repositorio git, y la raíz tiene otro repo para infraestructura/documentación/scripts.
 
+| Repositorio | URL | Visibilidad |
+|---|---|---|
+| financial-core (raíz) | https://github.com/Zairex-Code/financial-core | Público |
+| customer-service | https://github.com/Zairex-Code/customer-service | Privado |
+| account-service | https://github.com/Zairex-Code/account-service | Público |
+| credit-service | https://github.com/Zairex-Code/credit-service | Público |
+| transaction-service | https://github.com/Zairex-Code/transaction-service | Público |
+| yanki-service | https://github.com/Zairex-Code/yanki-service | Público |
+| gateway-service | https://github.com/Zairex-Code/gateway-service | Público |
+| eureka-server | https://github.com/Zairex-Code/eureka-server | Público |
+| config-server | https://github.com/Zairex-Code/config-server | Público |
+
 ---
 
 ## 27. Variables de entorno
