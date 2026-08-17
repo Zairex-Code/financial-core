@@ -483,11 +483,11 @@ spring:
 
 | Servicio | Cobertura |
 |---|---|
-| account-service | 87.3% |
-| credit-service | 87.0% |
-| customer-service | 85.6% |
-| transaction-service | 93.9% |
-| yanki-service | 91.1% |
+| customer-service | 88.6% |
+| account-service | 86.1% |
+| credit-service | 86.8% |
+| transaction-service | 94.8% |
+| yanki-service | 90.4% |
 | gateway-service | 100% |
 
 ### SonarQube
@@ -605,6 +605,28 @@ cd bank-infrastructure
 docker compose -f docker-compose.services.yaml up --build
 ```
 
+### 23.8 UIs de monitoreo y documentación
+
+| Herramienta | URL | Descripción |
+|---|---|---|
+| **Eureka** (Service Discovery) | http://localhost:8761 | Servicios registrados y su estado |
+| **Kafka-UI** | http://localhost:8089 | Topics y mensajes (p. ej. `debit-card-payments`) |
+| **SonarQube** | http://localhost:9000 | Calidad de código / quality gates |
+| **Swagger UI — Gateway** | http://localhost:8080/webjars/swagger-ui/index.html | Documentación OpenAPI central |
+| **Swagger UI — customer** | http://localhost:8081/webjars/swagger-ui/index.html | |
+| **Swagger UI — account** | http://localhost:8082/webjars/swagger-ui/index.html | |
+| **Swagger UI — credit** | http://localhost:8083/webjars/swagger-ui/index.html | |
+| **Swagger UI — transaction** | http://localhost:8084/webjars/swagger-ui/index.html | |
+| **Swagger UI — yanki** | http://localhost:8085/webjars/swagger-ui/index.html | |
+| **Actuator (health)** | http://localhost:`<puerto>`/actuator/health | Salud de cada servicio |
+
+**Cobertura JaCoCo (HTML):** cada servicio genera su reporte en `target/site/jacoco/index.html` al ejecutar `./mvnw verify`. Para verlo en el navegador:
+
+```bash
+# ejemplo con account-service (abrir http://localhost:8090 en el navegador)
+cd account-service/target/site/jacoco && python3 -m http.server 8090
+```
+
 ---
 
 ## 24. Pruebas
@@ -615,7 +637,7 @@ docker compose -f docker-compose.services.yaml up --build
 ./mvnw verify     # tests + gate de cobertura JaCoCo (≥80%)
 ```
 
-**Totales: 249 tests**
+**Totales: 251 tests**
 
 | Servicio | Tests |
 |---|---|
@@ -623,7 +645,7 @@ docker compose -f docker-compose.services.yaml up --build
 | account-service | 87 |
 | credit-service | 68 |
 | transaction-service | 18 |
-| yanki-service | 24 |
+| yanki-service | 26 |
 | gateway-service | 4 |
 | eureka-server | 1 |
 | config-server | 1 |
