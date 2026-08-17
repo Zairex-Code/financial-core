@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as CustomerController
+    participant U as GetCustomerUseCaseImpl
+    participant Cache as CustomerCachePort (Redis)
+    participant P as CustomerPersistencePort
+    participant M as MongoDB
+
+    C->>R: GET /api/v1/customers/{id}
+    R->>U: findById(id)
+    U->>Cache: get(id)
+    alt cache hit
+        Cache-->>U: Customer
+    else cache miss
+        Cache-->>U: vacio
+        U->>P: findById(id)
+        P->>M: findById
+        M-->>P: document
+        P-->>U: Customer
+        U->>Cache: put(id, customer)
+        Cache-->>U: ok (best-effort)
+    end
+    U-->>R: Customer
+    R-->>C: 200 OK
+    Note over U: Si no existe -> CustomerNotFoundException -> 404

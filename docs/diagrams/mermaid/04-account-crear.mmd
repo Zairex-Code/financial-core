@@ -1,0 +1,33 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as AccountController
+    participant U as CreateAccountUseCaseImpl
+    participant CP as CustomerClientPort
+    participant W as CustomerWebClientAdapter
+    participant CS as customer-service
+    participant P as AccountPersistencePort
+    participant M as MongoDB
+
+    C->>R: POST /api/v1/accounts
+    R->>U: execute(account)
+    U->>CP: getById(customerId)
+    CP->>W: GET http://customer-service/api/v1/customers/{id}
+    W->>CS: (vía Eureka, circuit breaker, timeout 2s)
+    CS-->>W: CustomerInfo(type, profile, hasOverdueDebit)
+    W-->>CP: CustomerInfo
+    CP-->>U: CustomerInfo
+    alt cliente con deuda (hasOverdueDebit=true)
+        U-->>R: rechazo
+        R-->>C: 409 (cliente bloqueado)
+    else reglas de tenencia violadas
+        U-->>R: rechazo
+        R-->>C: 409 (límite: 1 SAVINGS / 1 CURRENT)
+    else ok
+        U->>P: save(account)
+        P->>M: save
+        M-->>P: document
+        P-->>U: Account
+        U-->>R: Account
+        R-->>C: 201 Created
+    end

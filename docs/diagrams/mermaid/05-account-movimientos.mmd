@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as AccountController
+    participant U as Deposit/Withdraw/TransferUseCaseImpl
+    participant P as AccountPersistencePort
+    participant MP as MovementClientPort
+    participant W as MovementWebClientAdapter
+    participant TS as transaction-service
+    participant M as MongoDB
+
+    C->>R: POST /api/v1/accounts/{id}/deposits
+    R->>U: execute(id, amount)
+    U->>P: findById(id)
+    P->>M: findById
+    M-->>P: document
+    P-->>U: Account
+    U->>U: account.deposit(amount)  (o withdraw/transfer)
+    U->>P: save(account)
+    P->>M: save
+    M-->>P: document
+    P-->>U: Account
+    U->>MP: recordMovement(...)
+    MP->>W: POST http://transaction-service/api/v1/movements
+    W->>TS: (vía Eureka, circuit breaker)
+    TS-->>W: 201
+    W-->>MP: ok
+    MP-->>U: ok
+    U-->>R: Account (balance actualizado)
+    R-->>C: 200 OK
+    Note over U: Retiro: comisión si excede maxMonthlyTransactions.<br/>Error InsufficientBalanceException si no hay saldo.

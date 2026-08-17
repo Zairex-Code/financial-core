@@ -1,0 +1,24 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as CustomerController
+    participant U as MarkCustomerOverdueUseCaseImpl
+    participant P as CustomerPersistencePort
+    participant Cache as CustomerCachePort (Redis)
+    participant M as MongoDB
+
+    C->>R: POST /api/v1/customers/{id}/overdue
+    R->>U: markOverdue(id)
+    U->>P: findById(id)
+    P->>M: findById
+    M-->>P: document
+    P-->>U: Customer
+    U->>U: updateOverdueDebitStatus(true).block()<br/>(status=BLOCKED, hasOverdueDebit=true)
+    U->>P: save(customer)
+    P->>M: save
+    M-->>P: document
+    P-->>U: Customer
+    U->>Cache: evict(id)
+    Cache-->>U: ok (best-effort)
+    U-->>R: Customer (BLOCKED)
+    R-->>C: 200 OK

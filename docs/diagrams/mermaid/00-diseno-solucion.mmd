@@ -1,0 +1,68 @@
+flowchart TB
+    subgraph CLIENTE["Consumidores"]
+        FE["Postman / Swagger / Frontend"]
+    end
+
+    GW["gateway-service<br/>API Gateway (:8080)"]
+
+    subgraph NEGOCIO["Microservicios de negocio (WebFlux + RxJava3 · Hexagonal)"]
+        CU["customer-service (:8081)"]
+        AC["account-service (:8082)"]
+        CR["credit-service (:8083)"]
+        TR["transaction-service (:8084)"]
+        YA["yanki-service (:8085)"]
+    end
+
+    subgraph TRANSVERSAL["Transversal"]
+        CF["config-server (:8888)"]
+        EU["eureka-server (:8761)"]
+        SQ["SonarQube (:9000)"]
+        SDB[("SonarQube-DB (PostgreSQL)")]
+    end
+
+    subgraph DATOS["Almacenamiento y mensajeria"]
+        MONGO[("MongoDB (:27017)<br/>customer_db · account_db · credit_db<br/>transaction_db · yanki_db")]
+        REDIS[("Redis (:6379)<br/>solo customer-service")]
+        KAFKA["Kafka + Zookeeper (:9092 · :2181)"]
+        KUI["kafka-ui (:8089)"]
+    end
+
+    FE --> GW
+
+    GW -->|"/api/v1/customers/**"| CU
+    GW -->|"/api/v1/accounts/**"<br/>"/api/v1/debit-cards/**"| AC
+    GW -->|"/api/v1/credits/**"| CR
+    GW -->|"/api/v1/movements/**"| TR
+    GW -->|"/api/v1/wallets/**"| YA
+
+    CU --> MONGO
+    AC --> MONGO
+    CR --> MONGO
+    TR --> MONGO
+    YA --> MONGO
+    CU --> REDIS
+
+    AC -->|"GET /api/v1/customers/{id} (WebClient)"| CU
+    CR -->|"GET /api/v1/customers/{id} (WebClient)"| CU
+    AC -->|"POST /api/v1/movements (WebClient)"| TR
+    CR -->|"POST /api/v1/movements (WebClient)"| TR
+
+    AC -->|"publica [debit-card-payments]"| KAFKA
+    KAFKA -->|"consume"| TR
+    KAFKA --> KUI
+
+    CU -.->|"registro / heartbeat"| EU
+    AC -.-> EU
+    CR -.-> EU
+    TR -.-> EU
+    YA -.-> EU
+    GW -.-> EU
+
+    CU -.->|"spring.config.import"| CF
+    AC -.-> CF
+    CR -.-> CF
+    TR -.-> CF
+    YA -.-> CF
+    GW -.-> CF
+
+    SQ --> SDB

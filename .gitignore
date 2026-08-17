@@ -11,3 +11,6 @@ yanki-service/
 # IDE
 .idea/
 *.iml
+
+# Logs de ejecución (start-all.sh)
+logs/

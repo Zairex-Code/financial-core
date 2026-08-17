@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    participant AC as account-service (producer)
+    participant K as Kafka (topic debit-card-payments)
+    participant C as DebitCardPaymentEventConsumer
+    participant U as RecordMovementUseCase
+    participant P as MovementPersistencePort
+    participant M as MongoDB
+
+    AC->>K: publica DebitCardPaymentEvent{accountId, cardId, amount, timestamp}
+    K->>C: consume (@KafkaListener groupId=transaction-service)
+    C->>C: deserializa evento
+    C->>U: execute(movement WITHDRAWAL, ProductType.ACCOUNT)
+    U->>P: save(movement)
+    P->>M: save
+    M-->>P: document
+    P-->>U: Movement
+    U-->>C: ok

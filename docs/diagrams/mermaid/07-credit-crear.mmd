@@ -1,0 +1,36 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as CreditController
+    participant U as CreateCreditUseCaseImpl
+    participant CP as CustomerClientPort
+    participant W as CustomerWebClientAdapter
+    participant CS as customer-service
+    participant P as CreditPersistencePort
+    participant M as MongoDB
+
+    C->>R: POST /api/v1/credits
+    R->>U: execute(credit)
+    U->>CP: getById(customerId)
+    CP->>W: GET http://customer-service/api/v1/customers/{id}
+    W->>CS: (vía Eureka)
+    CS-->>W: CustomerInfo(type, profile, hasOverdueDebit)
+    W-->>CP: CustomerInfo
+    CP-->>U: CustomerInfo
+    alt hasOverdueDebit=true
+        U-->>R: rechazo
+        R-->>C: 409 (cliente bloqueado)
+    else PERSONAL no puede crear BUSINESS
+        U-->>R: rechazo
+        R-->>C: 409 (regla de tipo)
+    else CREDIT_CARD sin creditLimit
+        U-->>R: rechazo
+        R-->>C: 400 (falta creditLimit)
+    else ok
+        U->>P: save(credit)
+        P->>M: save
+        M-->>P: document
+        P-->>U: Credit
+        U-->>R: Credit
+        R-->>C: 201 Created
+    end

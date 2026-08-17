@@ -516,6 +516,7 @@ export SONAR_TOKEN=<token>
 - **Swagger UI** por servicio: `http://localhost:<puerto>/swagger-ui/index.html`.
 - **OpenAPI crudo:** `http://localhost:<puerto>/v3/api-docs`.
 - **Exportar specs:** `./scripts/export-openapi.sh` (genera `docs/openapi/*.yaml`).
+- **Diagramas:** en `docs/diagrams/` está el **diseño de la solución** y los **diagramas de secuencia por microservicio**, en dos formatos: `drawio/*.drawio` (abrir directo en draw.io) y `mermaid/*.mmd` (texto plano importable). La especificación detallada está en `docs/diagrams/00-especificacion-diagramas.md` y un prompt reutilizable en `docs/diagrams/01-prompt-ia-diagramas.md`.
 - **Postman:** colección completa en `postman/Financial_Core.postman_collection.json`. Usa el Gateway como única URL base (`{{baseUrl}} = http://localhost:8080`) e incluye todos los endpoints (clientes, cuentas, débito, créditos, movimientos y Yanki). Importa la colección, llena las variables (`customerId`, `accountId`, `creditId`, `creditNumber`, `debitCardId`, `walletPhone`) y ejecuta los flujos.
 - **Datos de demostración:** `./scripts/seed.sh` crea clientes, cuentas, créditos, movimientos, tarjeta de débito y billeteras de ejemplo.
 
@@ -671,6 +672,7 @@ Final_Project_NTT_DATA_Bank/
 ├── README.md                  ← este documento maestro
 ├── PLAN_PROYECTO.md           ← hoja de ruta y convenciones
 ├── bank-infrastructure/       ← docker-compose (infra + servicios)
+├── docs/diagrams/             ← diagramas draw.io + Mermaid (diseño y secuencias)
 ├── postman/                   ← colección Postman
 ├── scripts/                   ← start-all.sh, stop-all.sh, seed.sh, sonar.sh, export-openapi.sh
 ├── customer-service/          ← repo git propio

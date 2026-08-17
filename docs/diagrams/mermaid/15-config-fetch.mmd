@@ -1,0 +1,10 @@
+sequenceDiagram
+    autonumber
+    participant S as Microservicio (cliente config)
+    participant C as config-server (:8888, perfil native)
+
+    S->>S: arranque: spring.config.import=optional:configserver:http://localhost:8888
+    S->>C: GET /<service>/default
+    C->>C: busca classpath:/config/<service>.yaml
+    C-->>S: config centralizada (puerto, nombre, MongoDB, Eureka)
+    Note over S: Si el servidor no responde, cae a la config local (application.yaml)

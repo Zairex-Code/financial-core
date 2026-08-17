@@ -1,0 +1,15 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant G as Spring Cloud Gateway (gateway-service :8080)
+    participant E as Eureka Server (:8761)
+    participant S as Microservicio destino
+
+    C->>G: GET/POST /api/v1/<recurso>/**
+    G->>G: match de ruta (tabla de 6 rutas)
+    Note over G: /customers/** /accounts/** /debit-cards/**<br/>/credits/** /movements/** /wallets/**
+    G->>E: resolver lb://<servicio>
+    E-->>G: instancia (host:puerto)
+    G->>S: reenvía la petición
+    S-->>G: respuesta
+    G-->>C: respuesta

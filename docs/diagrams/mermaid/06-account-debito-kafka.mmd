@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant R as DebitCardController
+    participant U as PayWithDebitCardUseCaseImpl
+    participant P as AccountPersistencePort
+    participant E as DomainEventPublisher
+    participant K as KafkaDomainEventPublisher
+    participant KAFKA as Kafka (topic debit-card-payments)
+    participant TS as transaction-service
+
+    C->>R: POST /api/v1/debit-cards/{id}/payments
+    R->>U: pay(cardId, amount)
+    U->>P: debitAccount(accountId, amount)
+    P-->>U: saldo actualizado
+    U->>E: publish("debit-card-payments", DebitCardPaymentEvent)
+    E->>K: publish(event)
+    K->>KAFKA: evento {accountId, cardId, amount, timestamp}
+    KAFKA-->>TS: consume (@KafkaListener groupId=transaction-service)
+    TS->>TS: registra Movement WITHDRAWAL (ProductType.ACCOUNT)
+    U-->>R: resultado
+    R-->>C: 200 OK
