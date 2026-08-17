@@ -513,7 +513,7 @@ export SONAR_TOKEN=<token>
 
 ## 22. Documentación de API (OpenAPI + Postman)
 
-- **Swagger UI** por servicio: `http://localhost:<puerto>/webjars/swagger-ui/index.html`.
+- **Swagger UI** por servicio: `http://localhost:<puerto>/swagger-ui/index.html`.
 - **OpenAPI crudo:** `http://localhost:<puerto>/v3/api-docs`.
 - **Exportar specs:** `./scripts/export-openapi.sh` (genera `docs/openapi/*.yaml`).
 - **Postman:** colección completa en `postman/Financial_Core.postman_collection.json`. Usa el Gateway como única URL base (`{{baseUrl}} = http://localhost:8080`) e incluye todos los endpoints (clientes, cuentas, débito, créditos, movimientos y Yanki). Importa la colección, llena las variables (`customerId`, `accountId`, `creditId`, `creditNumber`, `debitCardId`, `walletPhone`) y ejecuta los flujos.
@@ -612,11 +612,11 @@ docker compose -f docker-compose.services.yaml up --build
 | **Eureka** (Service Discovery) | http://localhost:8761 | Servicios registrados y su estado |
 | **Kafka-UI** | http://localhost:8089 | Topics y mensajes (p. ej. `debit-card-payments`) |
 | **SonarQube** | http://localhost:9000 | Calidad de código / quality gates |
-| **Swagger UI — customer** | http://localhost:8081/webjars/swagger-ui/index.html | |
-| **Swagger UI — account** | http://localhost:8082/webjars/swagger-ui/index.html | |
-| **Swagger UI — credit** | http://localhost:8083/webjars/swagger-ui/index.html | |
-| **Swagger UI — transaction** | http://localhost:8084/webjars/swagger-ui/index.html | |
-| **Swagger UI — yanki** | http://localhost:8085/webjars/swagger-ui/index.html | |
+| **Swagger UI — customer** | http://localhost:8081/swagger-ui/index.html | |
+| **Swagger UI — account** | http://localhost:8082/swagger-ui/index.html | |
+| **Swagger UI — credit** | http://localhost:8083/swagger-ui/index.html | |
+| **Swagger UI — transaction** | http://localhost:8084/swagger-ui/index.html | |
+| **Swagger UI — yanki** | http://localhost:8085/swagger-ui/index.html | |
 | **Actuator (health)** | http://localhost:`<puerto>`/actuator/health | Salud de cada servicio |
 
 > El **gateway** (`:8080`) no expone Swagger propio: es un enrutador (Spring Cloud Gateway), no un servicio con controllers. La documentación OpenAPI se consulta en cada microservicio (8081–8085).
