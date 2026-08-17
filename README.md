@@ -612,13 +612,14 @@ docker compose -f docker-compose.services.yaml up --build
 | **Eureka** (Service Discovery) | http://localhost:8761 | Servicios registrados y su estado |
 | **Kafka-UI** | http://localhost:8089 | Topics y mensajes (p. ej. `debit-card-payments`) |
 | **SonarQube** | http://localhost:9000 | Calidad de código / quality gates |
-| **Swagger UI — Gateway** | http://localhost:8080/webjars/swagger-ui/index.html | Documentación OpenAPI central |
 | **Swagger UI — customer** | http://localhost:8081/webjars/swagger-ui/index.html | |
 | **Swagger UI — account** | http://localhost:8082/webjars/swagger-ui/index.html | |
 | **Swagger UI — credit** | http://localhost:8083/webjars/swagger-ui/index.html | |
 | **Swagger UI — transaction** | http://localhost:8084/webjars/swagger-ui/index.html | |
 | **Swagger UI — yanki** | http://localhost:8085/webjars/swagger-ui/index.html | |
 | **Actuator (health)** | http://localhost:`<puerto>`/actuator/health | Salud de cada servicio |
+
+> El **gateway** (`:8080`) no expone Swagger propio: es un enrutador (Spring Cloud Gateway), no un servicio con controllers. La documentación OpenAPI se consulta en cada microservicio (8081–8085).
 
 **Cobertura JaCoCo (HTML):** cada servicio genera su reporte en `target/site/jacoco/index.html` al ejecutar `./mvnw verify`. Para verlo en el navegador:
 
