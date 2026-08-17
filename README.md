@@ -523,7 +523,24 @@ export SONAR_TOKEN=<token>
 
 ## 23. Paso a paso: cómo encender el proyecto
 
-> **Atajo (recomendado):** `./scripts/start-all.sh` levanta infraestructura + los 8 servicios en orden y espera a que estén sanos. Para apagar: `./scripts/stop-all.sh` (o `--infra` para bajar también Docker). Los pasos 23.2–23.5 siguientes son la versión manual.
+### 23.0 Inicio rápido (scripts, recomendado)
+Para no arrancar servicio por servicio, hay scripts que lo hacen todo:
+
+```bash
+# 1) Encender infraestructura + los 8 servicios (en orden, espera a que estén sanos)
+./scripts/start-all.sh
+
+# 2) (opcional) Cargar datos de demostración
+./scripts/seed.sh
+
+# 3) Apagar los servicios
+./scripts/stop-all.sh
+
+# 4) Apagar servicios + infraestructura Docker
+./scripts/stop-all.sh --infra
+```
+
+Los logs de cada servicio quedan en `logs/<servicio>.log`. Los pasos 23.1–23.6 siguientes explican la versión manual (por si quieres ver cada servicio por separado).
 
 ### 23.1 Prerrequisitos
 - **Docker** instalado y corriendo.
@@ -665,11 +682,13 @@ Cada microservicio tiene su propio repositorio git, y la raíz tiene otro repo p
 
 | Situación | Comando |
 |---|---|
+| Encender todo (infra + 8 servicios) | `./scripts/start-all.sh` |
+| Cargar datos demo | `./scripts/seed.sh` |
+| Apagar servicios | `./scripts/stop-all.sh` |
+| Apagar servicios + Docker | `./scripts/stop-all.sh --infra` |
 | Ver cobertura en el navegador | `cd account-service/target/site/jacoco && python3 -m http.server 8080` |
 | Ver contenedores | `docker ps` |
-| Ver logs de un servicio | `tail -f /tmp/opencode/<servicio>.log` |
-| Detener un servicio | `kill $(ss -tlnp \| grep :8082 \| grep -o 'pid=[0-9]*' \| cut -d= -f2)` |
-| Recrear infraestructura | `cd bank-infrastructure && docker compose down && docker compose up -d` |
+| Ver logs de un servicio | `tail -f logs/<servicio>.log` |
 | Analizar con SonarQube | `export SONAR_TOKEN=<token> && ./scripts/sonar.sh` |
 | Exportar OpenAPI | `./scripts/export-openapi.sh` |
 | Listar topics Kafka | `docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list` |
