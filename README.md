@@ -523,6 +523,8 @@ export SONAR_TOKEN=<token>
 
 ## 23. Paso a paso: cómo encender el proyecto
 
+> **Atajo (recomendado):** `./scripts/start-all.sh` levanta infraestructura + los 8 servicios en orden y espera a que estén sanos. Para apagar: `./scripts/stop-all.sh` (o `--infra` para bajar también Docker). Los pasos 23.2–23.5 siguientes son la versión manual.
+
 ### 23.1 Prerrequisitos
 - **Docker** instalado y corriendo.
 - **JDK 17** (el wrapper `mvnw` lo requiere).
@@ -630,7 +632,7 @@ Final_Project_NTT_DATA_Bank/
 ├── PLAN_PROYECTO.md           ← hoja de ruta y convenciones
 ├── bank-infrastructure/       ← docker-compose (infra + servicios)
 ├── postman/                   ← colección Postman
-├── scripts/                   ← export-openapi.sh, sonar.sh, seed.sh
+├── scripts/                   ← start-all.sh, stop-all.sh, seed.sh, sonar.sh, export-openapi.sh
 ├── customer-service/          ← repo git propio
 ├── account-service/           ← repo git propio
 ├── credit-service/            ← repo git propio
