@@ -20,13 +20,27 @@ Los nombres de servicios, puertos, endpoints y topics son los reales del código
 | **Configuración (Config Server)** | Flecha punteada fina, etiqueta `spring.config.import`. |
 | **Llamada interna entre servicios (WebClient)** | Flecha sólida `→`, etiqueta `GET/POST http://<servicio>...`. |
 
-Colores de línea de vida (sequence diagrams): un color por servicio, texto en español.
+### Convenciones de diagramas de secuencia
+
+| Elemento | Convención |
+|---|---|
+| **Participante** | Caja con nombre: cliente (amarillo), servicio/use case/puerto (azul), adaptador/infra (gris), BD (verde cilindro). |
+| **Línea de vida** | Línea vertical punteada gris bajo cada participante. |
+| **Barra de activación** | Rectángulo sólido azul claro sobre la línea de vida, del primer al último mensaje del participante. |
+| **Mensaje síncrono** | Flecha sólida `→` entre lifelines. |
+| **Respuesta (return)** | Flecha punteada con punta abierta `⇢`. |
+| **Mensaje asíncrono (Kafka)** | Flecha punteada roja `⇢`. |
+| **Self-mensaje** | Caja redondeada centrada sobre su línea de vida (operación interna). |
+| **Marco `alt` / `loop`** | Rectángulo con pestaña etiquetada que agrupa los mensajes de la rama condicional o bucle. |
+| **Nota de regla** | Nota amarilla al pie del diagrama. |
+
+Todo el texto en español.
 
 ---
 
 ## 1. Diseño de la solución (arquitectura)
 
-**Archivo:** `mermaid/00-diseno-solucion.mmd` · `drawio/00-diseno-solucion.drawio`
+**Archivo:** `drawio/00-diseno-solucion.drawio`
 
 **Propósito:** vista global del ecosistema: clientes → gateway → microservicios → almacenamiento, con las
 dependencias transversales (Eureka, Config Server, SonarQube) y la comunicación entre servicios.
@@ -76,12 +90,38 @@ dependencias transversales (Eureka, Config Server, SonarQube) y la comunicación
 
 ---
 
-## 2. Diagramas de secuencia por microservicio
+## 2. Despliegue Docker
+
+**Archivo:** `drawio/16-diseno-despliegue.drawio`
+
+**Propósito:** vista de infraestructura: contenedores, puertos y la red `financial-network`.
+
+**Contenedores (infraestructura):**
+- `customer-db` (mongo:7.0, :27017) — una sola instancia Mongo con las 5 bases.
+- `redis-cache` (redis:7.2-alpine, :6379).
+- `zookeeper` (cp-zookeeper:7.5.0, :2181).
+- `kafka` (cp-kafka:7.5.0, :9092).
+- `kafka-ui` (:8089).
+- `sonarqube-db` (postgres:15-alpine, interno).
+- `sonarqube` (sonarqube:10.3, :9000).
+
+**Contenedores (servicios):** los 8 servicios (`eureka-server` :8761, `config-server` :8888, `customer-service` :8081, `account-service` :8082, `credit-service` :8083, `transaction-service` :8084, `yanki-service` :8085, `gateway-service` :8080).
+
+**Relaciones clave:**
+- Los 5 servicios de negocio → `customer-db` con URI `mongodb://customer-db:27017/<db>` (una base por servicio).
+- `customer-service` → `redis-cache` (`REDIS_HOST=redis-cache`).
+- `account-service` y `transaction-service` → `kafka` (`KAFKA_BOOTSTRAP_SERVERS=kafka:29092`; account produce, transaction consume).
+- `sonarqube` → `sonarqube-db` (PostgreSQL interno).
+- Todos los servicios se registran en `eureka-server` y obtienen config de `config-server`.
+
+---
+
+## 3. Diagramas de secuencia por microservicio
 
 Cada secuencia usa los participantes reales (controlador → caso de uso → puerto → adaptador → infraestructura).
 Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adaptadores son la infraestructura.
 
-### 2.1 customer-service (`01-customer-service`)
+### 3.1 customer-service (`01-customer-crear` · `02-customer-get-cache` · `03-customer-overdue`)
 
 **Secuencia A — Crear cliente**
 - Participantes: `Cliente` → `CustomerController` → `CreateCustomerUseCaseImpl` → `CustomerPersistencePort` → `CustomerMongoAdapter` → `MongoDB`.
@@ -97,7 +137,7 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 - Participantes: `Cliente` → `CustomerController` → `MarkCustomerOverdueUseCaseImpl` → `CustomerPersistencePort` → `MongoDB`, y `CustomerCachePort` (evict).
 - Flujo: `POST /api/v1/customers/{id}/overdue` → `findById` → `updateOverdueDebitStatus(true).block()` → `save` → `cache.evict(id)` → 200 con `status=BLOCKED, hasOverdueDebit=true`.
 
-### 2.2 account-service (`02-account-service`)
+### 3.2 account-service (`04-account-crear` · `05-account-movimientos` · `06-account-debito-kafka`)
 
 **Secuencia A — Crear cuenta**
 - Participantes: `Cliente` → `AccountController` → `CreateAccountUseCaseImpl` → `CustomerClientPort` → `CustomerWebClientAdapter` → `customer-service`; y `AccountPersistencePort` → `MongoDB`.
@@ -119,7 +159,7 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 - Participantes: `Cliente` → `DebitCardController` → `PayWithDebitCardUseCaseImpl` → `AccountPersistencePort` (debita) y `DomainEventPublisher` → `KafkaDomainEventPublisher` → `Kafka` → `transaction-service`.
 - Flujo: `POST /api/v1/debit-cards/{id}/payments` → debita la cuenta → publica evento `debit-card-payments` (`DebitCardPaymentEvent{accountId, cardId, amount, timestamp}`) → (asíncrono) transaction-service registra `Movement` `WITHDRAWAL`.
 
-### 2.3 credit-service (`03-credit-service`)
+### 3.3 credit-service (`07-credit-crear` · `08-credit-operaciones`)
 
 **Secuencia A — Crear crédito**
 - Participantes: `Cliente` → `CreditController` → `CreateCreditUseCaseImpl` → `CustomerClientPort` → `customer-service`; y `CreditPersistencePort` → `MongoDB`.
@@ -135,7 +175,7 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 - Consumo (solo `CREDIT_CARD`): `POST /api/v1/credits/{id}/consumptions` → `consume` → `save` → `POST /movements` (`CARD_CONSUMPTION`). Error `409` si no es tarjeta de crédito.
 - Pago de terceros: `POST /api/v1/credits/number/{creditNumber}/third-party-payments` → `POST /movements`.
 
-### 2.4 transaction-service (`04-transaction-service`)
+### 3.4 transaction-service (`09-transaction-http` · `10-transaction-kafka`)
 
 **Secuencia A — Registrar movimiento (HTTP)**
 - Participantes: `Origen (account/credit-service)` → `MovementController` → `RecordMovementUseCase` → `MovementPersistencePort` → `MongoDB`.
@@ -145,7 +185,7 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 - Participantes: `Kafka` → `DebitCardPaymentEventConsumer` (@KafkaListener `debit-card-payments`) → `RecordMovementUseCase` → `MongoDB`.
 - Flujo: consume `DebitCardPaymentEvent` → construye `Movement` `WITHDRAWAL` sobre `ProductType.ACCOUNT` → `save`.
 
-### 2.5 yanki-service (`05-yanki-service`)
+### 3.5 yanki-service (`11-yanki-crear` · `12-yanki-transfer`)
 
 **Secuencia A — Crear billetera**
 - Participantes: `Cliente` → `WalletController` → `CreateWalletUseCase` → `WalletPersistencePort` → `MongoDB`.
@@ -155,20 +195,20 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 - Participantes: `Cliente` → `WalletController` → `TransferWalletUseCase` → `WalletPersistencePort` → `MongoDB`.
 - Flujo: `POST /api/v1/wallets/transfers` con `sourcePhoneNumber`, `destinationPhoneNumber`, `amount` → debita origen, acredita destino → 200. Error si saldo insuficiente.
 
-### 2.6 gateway-service (`06-gateway-service`)
+### 3.6 gateway-service (`13-gateway-routing`)
 
 **Secuencia — Enrutamiento**
 - Participantes: `Cliente` → `Spring Cloud Gateway (gateway-service :8080)` → `Eureka` → `servicio destino`.
 - Flujo: `GET/POST /api/v1/<recurso>/**` → match de ruta (tabla de 6 rutas) → resuelve `lb://<servicio>` vía Eureka → reenvía al microservicio → respuesta de vuelta.
 - Nota: tiene `JwtService` (HS256) como utilería, pero el filtro de validación JWT **no está cableado** (no aplicar en el diagrama como paso de seguridad).
 
-### 2.7 eureka-server (`07-eureka-server`)
+### 3.7 eureka-server (`14-eureka-registro`)
 
 **Secuencia — Registro y heartbeat**
 - Participantes: `microservicio (cliente Eureka)` → `eureka-server (:8761)`.
 - Flujo: al arrancar, `register-with-eureka` → `POST /eureka/apps/<service>` → 204; cada 30s envía `heartbeat` (`PUT /eureka/apps/<service>/<instance>`). El gateway y los servicios resuelven `lb://<service>` consultando el registro.
 
-### 2.8 config-server (`08-config-server`)
+### 3.8 config-server (`15-config-fetch`)
 
 **Secuencia — Obtención de configuración**
 - Participantes: `microservicio (cliente config)` → `config-server (:8888, perfil native)`.
@@ -176,7 +216,7 @@ Nota de capas: los casos de uso y puertos son la **lógica hexagonal**; los adap
 
 ---
 
-## 3. Leyenda y notas de dominio (para no equivocarse)
+## 4. Leyenda y notas de dominio (para no equivocarse)
 
 - **Hexagonal**: domain (modelo + puertos input/output) / application (casos de uso) / infrastructure (entrypoints REST, adaptadores de persistencia/cliente/mensajería).
 - **Enums**: `CustomerType{PERSONAL,BUSINESS}`, `CustomerProfile{STANDARD,VIP,PYME}`, `CustomerStatus{ACTIVE,INACTIVE,BLOCKED}`, `AccountType{SAVINGS,CURRENT,FIXED_TERM}`, `AccountStatus{ACTIVE,BLOCKED,INACTIVE,CLOSED}`, `CreditType{PERSONAL,BUSINESS,CREDIT_CARD}`, `CreditStatus{ACTIVE,PAID,OVERDUE,BLOCKED,CANCELLED}`, `ProductType{ACCOUNT,CREDIT,CREDIT_CARD}`, `MovementType{DEPOSIT,WITHDRAWAL,PAYMENT,CARD_CONSUMPTION,TRANSFER}`, `WalletStatus{ACTIVE,BLOCKED}`, `DebitCardStatus{ACTIVE,BLOCKED}`.

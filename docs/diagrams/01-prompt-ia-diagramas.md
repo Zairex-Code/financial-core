@@ -1,7 +1,7 @@
 # Prompt reutilizable para generar los diagramas con cualquier IA
 
 Copia TODO el bloque siguiente y pégalo en la IA de tu preferencia (ChatGPT, Claude, Gemini, etc.).
-Pídele el formato de salida que necesites al final (Mermaid, XML de draw.io, PlantUML, o descripción textual).
+Pídele el formato de salida al final (se recomienda **XML de draw.io** para abrirlo directamente).
 
 ---
 
@@ -84,24 +84,31 @@ Todo el texto debe ir en ESPAÑOL.
    - eureka-server: registro de un servicio y heartbeat.
    - config-server: obtención de configuración al arrancar (spring.config.import).
 
-   En cada secuencia usa participantes reales: Cliente -> Controller -> UseCase -> Port -> Adapter -> Infraestructura,
-   con los nombres de endpoints y métodos HTTP exactos, y los códigos de estado (201/200/404/409) y errores de negocio
-   (DuplicateCustomerException, CustomerNotFoundException, InsufficientBalanceException, etc.).
+    En cada secuencia usa participantes reales: Cliente -> Controller -> UseCase -> Port -> Adapter -> Infraestructura,
+    con los nombres de endpoints y métodos HTTP exactos, y los códigos de estado (201/200/404/409) y errores de negocio
+    (DuplicateCustomerException, CustomerNotFoundException, InsufficientBalanceException, etc.).
+
+3. UN "Diagrama de despliegue (Docker)" que muestre los contenedores y puertos:
+   customer-db (mongo:27017), redis-cache (6379), zookeeper (2181), kafka (9092), kafka-ui (8089),
+   sonarqube-db (postgres) + sonarqube (9000), y los 8 servicios (eureka 8761, config 8888,
+   customer 8081, account 8082, credit 8083, transaction 8084, yanki 8085, gateway 8080),
+   todos en la red "financial-network". Indica que los 5 servicios apuntan a customer-db con su propia base.
 
 # ESTILO Y FORMATO
 - Idioma: español.
 - Convención de flechas: sólida para HTTP síncrono; punteada para Kafka y registro/config.
-- Colores: microservicios azul claro, infraestructura gris, base de datos verde (cilindro).
-- Salida: [INDICA AQUÍ EL FORMATO: Mermaid / XML draw.io / PlantUML / etc.]
+- Colores: microservicios azul claro, infraestructura gris, base de datos verde (cilindro), cliente amarillo.
+- En los diagramas de secuencia usa: barras de activación sobre cada línea de vida,
+  self-mensajes como cajas sobre su propia línea de vida, y marcos "alt"/"loop" para las ramas condicionales.
+- Salida: XML de draw.io (mxfile válido, un <diagram> por archivo), con nodos y aristas bien separados
+  (sin solapes ni nodos fuera de página).
 ```
 
 ---
 
 ## Cómo usar el prompt
 
-1. Sustituye el texto `[INDICA AQUÍ EL FORMATO: ...]` por el formato que quieras.
-   - Para draw.io directo: "XML de draw.io (mxfile) que se pueda importar".
-   - Para texto plano: "Mermaid".
+1. Pega el bloque y pide el formato de salida: **"XML de draw.io (mxfile)"** para abrirlo directamente en draw.io.
 2. Puedes pedir "un diagrama por archivo" o "todos en un solo archivo".
 3. Si la IA omite algún detalle, pégale de vuelta el bloque de la sección que falte y pídele que lo corrija.
 
